@@ -1,0 +1,17 @@
+.encryptedKey.json
+node_modules
+.env
+.vscode
+# Hardhat files
+/cache
+/artifacts
+.DS_Store
+# TypeChain files
+/typechain
+/typechain-types
+
+# solidity-coverage files
+/coverage
+/coverage.json
+gas-report.txt
+deployments
