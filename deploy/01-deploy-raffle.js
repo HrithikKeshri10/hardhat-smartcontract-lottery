@@ -1,5 +1,5 @@
 const { network, ethers } = require("hardhat")
-const { networkConfig } = require("../helper-hardhat-config")
+const { developmentChains, networkConfig } = require("../helper-hardhat-config")
 const { verify } = require("../utils/verify")
 
 const VRF_SUB_FUND_AMOUNT = ethers.parseEther("2")
@@ -9,13 +9,10 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
-    let vrfCoordinatorV2Address, subscriptionID
+    let vrfCoordinatorV2Address, subscriptionID, vrfCoordinatorV2Mock, contractAddress
     if (chainId == 31337) {
-        const contractAddress = (await deployments.get("VRFCoordinatorV2Mock")).address
-        const vrfCoordinatorV2Mock = await ethers.getContractAt(
-            "VRFCoordinatorV2Mock",
-            contractAddress
-        )
+        contractAddress = (await deployments.get("VRFCoordinatorV2Mock")).address
+        vrfCoordinatorV2Mock = await ethers.getContractAt("VRFCoordinatorV2Mock", contractAddress)
         vrfCoordinatorV2Address = contractAddress
         // We created the subscription
         const transactionResponse = await vrfCoordinatorV2Mock.createSubscription()
@@ -30,7 +27,6 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     }
 
     const entranceFee = networkConfig[chainId]["entranceFee"]
-
     const gasLane = networkConfig[chainId]["gasLane"]
     const callbackGasLimit = networkConfig[chainId]["callbackGasLimit"]
     const interval = networkConfig[chainId]["interval"]
@@ -53,6 +49,15 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     })
 
     log(`Raffle deployed at ${raffle.address}`)
+
+    if (chainId == 31337) {
+        log(`Adding Consumer...`)
+        contractAddress = (await deployments.get("VRFCoordinatorV2Mock")).address
+        vrfCoordinatorV2Mock = await ethers.getContractAt("VRFCoordinatorV2Mock", contractAddress)
+
+        await vrfCoordinatorV2Mock.addConsumer(subscriptionID, raffle.address)
+        log(`Consumer Successfully Added!`)
+    }
 
     if (chainId != 31337 && process.env.ETHERSCAN_API_KEY) {
         await verify(raffle.address, args)
