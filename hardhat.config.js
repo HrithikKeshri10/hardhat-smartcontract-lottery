@@ -42,6 +42,7 @@ module.exports = {
     namedAccounts: {
         deployer: {
             default: 0,
+            1: 0,
         },
         player: {
             default: 1,
@@ -49,11 +50,15 @@ module.exports = {
     },
 
     gasReporter: {
-        enabled: false,
+        enabled: true,
         outputFile: "gas-report.txt",
         noColors: true,
         currency: "USD",
         coinmarketcap: COINMARKETCAP_API_KEY,
         //token: "MATIC",
+    },
+
+    mocha: {
+        timeout: 2000000,
     },
 }
